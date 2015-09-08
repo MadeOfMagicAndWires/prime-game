@@ -20,11 +20,11 @@ public class PrimeGame {
   //Class properties
   private Random              rando;
   private int               current;
-  protected boolean         isPrime;
+  private boolean           isPrime;
   private int              rangeMax;
-  private int                 level;
-  private int                 turns;
-  public int                  score;
+  protected int               level;
+  protected int               turns;
+  protected int               score;
 
   /**
    * PrimeGame constructor:
@@ -75,6 +75,7 @@ public class PrimeGame {
    */
   public void getNewNumber() {
     current = rando.nextInt(rangeMax+1);
+    isPrime = checkPrime(current);
   }
 
   /**
@@ -142,7 +143,7 @@ public class PrimeGame {
    * {@link PrimeGame#getCurrNum } is a prime.
    * Also handles calls that should happen on
    * a correct answer.
-   * 
+   *
    * @return true if user correct, false if user is wrong.
    * @see IncreaseMaxRange();
    * @see playTurn();
@@ -151,16 +152,16 @@ public class PrimeGame {
     if (answer == isPrime) {
       score += getCurrNum();
       increaseMaxRange();
-      // implement increaseLevel()
+      increaseLevel();
       return true;
-    } 
+    }
     else {
-      score = 0;
+      score -= 0;
       return false;
     }
   }
 
-  /** 
+  /**
    * Plays a single turn
    * First prints out number using {@link PrimeGame#getCurrNum}
    * Then takes answer from user using {@ #getAnswer}
@@ -171,8 +172,19 @@ public class PrimeGame {
    */
   public void playTurn() {
     checkAnswer(false);
-    //implement nextTurn() preperation method.
+    nextTurn();
   }
+
+  /**
+   * Makes preperations for the next turn
+   * Ressetting the next number,
+   * increase turn timer by 1
+   * @see #getNewNumber
+   */
+  public void nextTurn() {
+    getNewNumber();
+    turns++;
+  };
 
   /**
    * Returns a string containing all the info of the class

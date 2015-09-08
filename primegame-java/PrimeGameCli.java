@@ -53,8 +53,23 @@ public class PrimeGameCli extends PrimeGame {
       System.out.println("Correct!");
     else
       System.out.println("Too bad!");
-    //implement nextTurn() preperation method.
+    System.out.println(toString());
+    nextTurn();
   }
+
+  /**
+   * Makes preperations for the next turn
+   * Ressets the next number,
+   * Increases the turn timer,
+   * Prints stats
+   * @see PrimeGame#getNewNumber
+   * @see #printStats
+   */
+  @Override
+  public void nextTurn() {
+    getNewNumber();
+    printStats();
+  };
 
   /**
    * Get some user input on a y/n question
@@ -79,6 +94,8 @@ public class PrimeGameCli extends PrimeGame {
         case  "No":
           answer = false;
           break;
+       case "quit":
+          System.exit(0);
         default:
           System.out.println("Please answer in yes or no");
           answer =  getAnswer();
@@ -93,6 +110,16 @@ public class PrimeGameCli extends PrimeGame {
   }
 
   /**
+   * Prints the players stats
+   * containing score, level, and turns played.
+   */
+  public void printStats() {
+    System.out.println("Level: " + level + " | " +
+                       "Score: " + score + " | " +
+                       "Turns: " + turns );
+  }
+
+  /**
    * The main function which will be fired on running the program
    * @param args String of arguments that are passed from
    *             command-line.
@@ -100,8 +127,10 @@ public class PrimeGameCli extends PrimeGame {
   public static void main (String[] args) {
     PrimeGameCli me = new PrimeGameCli();
     me.startGame();
-    System.out.println(me.toString());
-    System.out.println("Score: " + me.score);
+
+    while(true) {
+      me.playTurn();
+    }
 
   }
 
