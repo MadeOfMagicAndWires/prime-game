@@ -22,6 +22,9 @@ public class PrimeGame {
   private int               current;
   protected boolean         isPrime;
   private int              rangeMax;
+  private int                 level;
+  private int                 turns;
+  public int                  score;
 
   /**
    * PrimeGame constructor:
@@ -33,6 +36,9 @@ public class PrimeGame {
   public PrimeGame() {
     rando    = new Random();
     rangeMax = 10;
+    score    =  0;
+    turns    =  0;
+    level    =  0;
     getNewNumber();
     isPrime  = checkPrime(current);
   }
@@ -113,6 +119,60 @@ public class PrimeGame {
    public void increaseMaxRange (int n) {
     rangeMax *= n;
    }
+
+  /**
+   * Increases level by 1.
+   */
+  public void increaseLevel() {
+    level++;
+  }
+
+  /**
+   * Increases level by number n.
+   * @param n amount to add to the level.
+   */
+  public void increaseLevel(int n) {
+    level += n;
+  };
+
+  /**
+   * Checks if a guesss correct
+   *
+   * @param answer user's guess as to whether
+   * {@link PrimeGame#getCurrNum } is a prime.
+   * Also handles calls that should happen on
+   * a correct answer.
+   * 
+   * @return true if user correct, false if user is wrong.
+   * @see IncreaseMaxRange();
+   * @see playTurn();
+   */
+  public boolean checkAnswer(boolean answer) {
+    if (answer == isPrime) {
+      score += getCurrNum();
+      increaseMaxRange();
+      // implement increaseLevel()
+      return true;
+    } 
+    else {
+      score = 0;
+      return false;
+    }
+  }
+
+  /** 
+   * Plays a single turn
+   * First prints out number using {@link PrimeGame#getCurrNum}
+   * Then takes answer from user using {@ #getAnswer}
+   * Checks that answer using {@ #checkAnswer}
+   * And finally increments the turn timer.
+   * @see #getCurrNum
+   * @see #checkAnswer
+   */
+  public void playTurn() {
+    checkAnswer(false);
+    //implement nextTurn() preperation method.
+  }
 
   /**
    * Returns a string containing all the info of the class

@@ -20,22 +20,6 @@ public class PrimeGameCli extends PrimeGame {
   //Subclass properties
   private static BufferedReader stdIn = new BufferedReader(new
                                             InputStreamReader(System.in));
-  public int score;
-  private int turns;
-  private int level;
-
-  /**
-   * PrimeGameCli subclass Constructor
-   * Sets score to 0;
-   * Sets turns to 0;
-   * Sets level to 1;
-   * @see PrimeGame#Constructor
-   */
-  public PrimeGameCli() {
-    score = 0;
-    turns = 0;
-    level = 0;
-  }
 
   /** Shows start game and plays first turn */
   public void startGame() {
@@ -44,7 +28,7 @@ public class PrimeGameCli extends PrimeGame {
     playTurn();
   }
 
-  /** 
+  /**
    * Plays a single turn
    * First prints out number using {@link PrimeGame#getCurrNum}
    * Then takes answer from user using {@ #getAnswer}
@@ -54,6 +38,7 @@ public class PrimeGameCli extends PrimeGame {
    * @see #getAnswer
    * @see #checkAnswer
    */
+  @Override
   public void playTurn() {
     System.out.println(getCurrNum());
     System.out.println("Is this a prime? y/n");
@@ -64,7 +49,11 @@ public class PrimeGameCli extends PrimeGame {
       System.out.println(io.getMessage());
     }
     answer = checkAnswer(answer);
-    //implement nextTurn() preperation method. 
+    if(answer)
+      System.out.println("Correct!");
+    else
+      System.out.println("Too bad!");
+    //implement nextTurn() preperation method.
   }
 
   /**
@@ -101,33 +90,6 @@ public class PrimeGameCli extends PrimeGame {
       System.exit(-1);
     }
     return answer;
-  }
-
-  /**
-   * Checks if the users guess, gotten from {@link #getAnswer} is correct
-   *
-   * @param answer user's guess as to whether
-   * {@link PrimeGame#getCurrNum } is a prime. 
-   * Also handles calls that should happen on
-   * a correct answer.
-   * 
-   * @return true if user correct, false if user is wrong.
-   * @see IncreaseMaxRange();
-   * @see playTurn();
-   */
-  public boolean checkAnswer(boolean answer) {
-    if (answer == isPrime) {
-      System.out.println("Correct!");
-      score += getCurrNum();
-      increaseMaxRange();
-      // implement increaseLevel()
-      return true;
-    } 
-    else {
-      System.out.println("Too bad!");
-      score = 0;
-      return false;
-    }
   }
 
   /**
