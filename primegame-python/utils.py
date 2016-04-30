@@ -1,10 +1,15 @@
 """
-Utility functions
+Utility functions and constants
 """
 
-def clear():
+import sys
+import os
 
-    print("\x1B[2J")
+NEWLINES={"win32" : '\r\n', 'linux':'\n', 'linux2': '\n', 'macos': '\r\n'}
+
+def clear():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
 
 def clear_alt(num):
     for i in range(num): print 
