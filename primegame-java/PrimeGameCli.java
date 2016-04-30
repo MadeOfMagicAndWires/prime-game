@@ -68,8 +68,9 @@ public class PrimeGameCli extends PrimeGame {
   @Override
   public void nextTurn() {
     getNewNumber();
+	turns++;
     printStats();
-  };
+  }
 
   /**
    * Get some user input on a y/n question
@@ -96,7 +97,7 @@ public class PrimeGameCli extends PrimeGame {
           break;
        case "quit":
           System.exit(0);
-        default:
+       default:
           System.out.println("Please answer in yes or no");
           answer =  getAnswer();
       }
