@@ -1,3 +1,3 @@
 *
-!primegame-python
-primegame-python/data
+!primegame-python/*
+!README.md
