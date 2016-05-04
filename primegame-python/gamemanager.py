@@ -7,9 +7,9 @@ import csv
 import utils
 
 if utils.PY3: ##if running python3:
-    import configparser
+    import configparser as Config
 else:
-    import ConfigParser
+    import ConfigParser as Config
 
 COMMANDS={
         'highscores': 'highscores',
@@ -79,10 +79,7 @@ class GameManager(object):
         """
         Reads and returns the configuration settings from an .ini file
         """
-        if utils.PY3: ##if running python3
-            config = configparser.ConfigParser()
-        else:
-            config = ConfigParser.ConfigParser()
+        config = Config.ConfigParser()
 
         try:
             config.read(self.get_configpath())
@@ -91,7 +88,7 @@ class GameManager(object):
 
         if not config.sections():
             utils.eprint("Configuration was not found, moving to defaults")
-            
+
             if utils.PY3: ##runing python3
                 config.read_dict(DEFAULT_CONFIG)
             else: ##python2 doesn't have read_dict()
@@ -99,20 +96,29 @@ class GameManager(object):
                     config.add_section(section)
                     for option,value in options.iteritems():
                         config.set(section, option, value)
-        
+
         return config
 
     def get_setting(self,setting, section="general"):
         """
         Returns the value of a configuration setting
         """
-        return self.config.get(section, setting)
+        try:
+            return self.config.get(section, setting)
+        except Config.NoSectionError:
+            return DEFAULT_CONFIG[section][setting]
 
     def set_setting(self,setting, value, section="general"):
         """
         Sets the value for a configuration setting
         """
-        self.config.set(section, setting, str(value))
+        try:
+            self.config.set(section, setting, str(value))
+        except Config.NoSectionError:
+            self.config.add_section(section)
+            self.config.set(section, setting, str(value))
+
+        self.write_config()
 
     def write_config(self):
         """
@@ -198,21 +204,7 @@ class GameManager(object):
             del self.highscores[minimum_highscore]
 
         self.highscores[new_highscore] = name
-
-    def print_highscores(self):
-        """
-        Prints the highscores to the screen
-        """
-        ##TODO move to primegame-CLI
-
-        ##find the "longest" number.
-        nullpadding = len(str(max(self.highscores.keys())))
-
-        for key in sorted(self.highscores.keys(), reverse=True):
-            value = self.highscores[key]
-
-            ##print as zeropadded score:name (00500: Scanlan)
-            print("{0:0{1}d} : {2}".format(key, nullpadding, value))
+        self.write_highscores()
 
     def write_highscores(self):
         """
@@ -240,76 +232,3 @@ class GameManager(object):
             eprint("Could not save highscores to file: {}".format(
                 self.get_highscorespath()))
             print(e)
-
-    def play(self):
-        """
-        Play the game
-        """
-        return NotImplementedError
-
-    def print_settings(self):
-        """
-        Show all current settings
-        """
-        ##TODO move to primegame-cli
-
-        return NotImplementedError
-
-    def quit(self):
-        """
-        Quit the application
-        """
-        ##TODO move to primegame-cli
-
-        self.write_config()
-        self.write_highscores()
-        exit()
-
-    def game_help(self):
-        """
-        Show game help
-        """
-        ##TODO move to primegame
-
-        print(u'¯\_(ツ)_/¯')
-        return NotImplementedError
-
-    def menu(self):
-        """
-        Show the main menu, alliwing the user to navigate between the various modes
-        """
-        ##TODO move to primegame-cli
-
-        running = True
-        while running:
-            if utils.PY3: ##if running python3:
-                prompt = str(input("menu>")).lower()
-            else:
-                prompt = str(raw_input("menu>")).lower()
-
-            if not prompt or prompt not in COMMANDS.values():
-                quit()
-            else:
-                if prompt == COMMANDS['highscores'] \
-                or prompt == COMMANDS['highscores-alias']:
-                    self.print_highscores()
-                elif prompt == COMMANDS['play'] \
-                or prompt == COMMANDS['play-alias']:
-                    self.play()
-                elif prompt == COMMANDS['settings'] \
-                or prompt == COMMANDS['settings-alias']:
-                    self.setting()
-                elif prompt == COMMANDS['quit'] \
-                or prompt == COMMANDS['quit-alias']:
-                    self.quit()
-                elif prompt == COMMANDS['help'] \
-                or prompt == COMMANDS['help-alias']:
-                    self.game_help()
-                else:
-                    self.game_help()
-
-if __name__ == "__main__":
-    import sys
-    game = GameManager(DEFAULT_CONFIGPATH)
-    game.menu()
-

@@ -18,8 +18,8 @@ def clear_alt(num):
 
 def eprint(msg):
     if PY3:
-        print(msg, file-sys.stderr)
+        eval('print(msg, file=sys.stderr)')
     else:
-        sys.stderr.write(msg)
+        sys.stderr.write(msg + "\n")
 
 
