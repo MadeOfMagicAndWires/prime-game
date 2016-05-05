@@ -77,7 +77,7 @@ class PrimeGame(object):
         """
         return self.number
 
-    def _isprime(self,n):
+    def _is_prime(self,n):
         """
         Returns True if n is a prime, False otherwise
         """
@@ -91,16 +91,16 @@ class PrimeGame(object):
             i=3
             while i*i <= n:
                 if (n % i) == 0:
-                    answer == False
+                    answer = False
                     break
-                i += 1
+                i += 2
         return answer
 
     def guess_prime(self, guess=False):
         """
         Returns True if the guess was correct, False otherwise
         """
-        return guess == self._isprime(self.get_number())
+        return guess == self._is_prime(self.get_number())
 
     def get_turns(self):
         """
@@ -150,6 +150,13 @@ class PrimeGame(object):
         """
         self.score += amount
 
+    def reset_score(self):
+        """
+        Reset the score to the minimum score defined in the configuration
+        """
+        self.score = int(self.manager.get_setting("min-score",
+            "prime-numbers"))
+
     def next_turn(self):
         """
         Preforms all the functions required to move to the next turn
@@ -172,7 +179,6 @@ class PrimeGame(object):
 
         ##Increase the turn counter and print the current state
         self.increase_turn()
-        print(self)
 
     def play_turn(self, answer=False):
         """
@@ -191,7 +197,7 @@ class PrimeGame(object):
 
         self.next_turn()
         return correct
-    
+
     def play(self):
         raise NotImplementedError
 
