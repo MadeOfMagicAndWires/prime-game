@@ -4,31 +4,82 @@ import sys
 import os
 from utils import *
 from primegame import *
+import cmd
 
-class PrimeGameCli(PrimeGame):
+LINE="-"*80
+
+
+class PrimeGameCmd(cmd.Cmd):
 
     def __init__(self, configpath=""):
-        PrimeGame.__init__(self, configpath)
+        cmd.Cmd.__init__(self)
+        self.game = PrimeGame(configpath)
+        self._intro()
 
-    def play(self):
+    def _intro(self):
+        self.intro = (LINE + NEWLINES[sys.platform])
+        self.intro += (format("Welcome to Primegame", '^80') +
+            NEWLINES[sys.platform])
+        self.intro += (LINE + NEWLINES[sys.platform])
+
+    def do_play(self, args):
         """
         Play the game
         """
+
+        self.game.reset_score()
+        playing = True
+
+        while playing:
+            clear()
+            print("{:^80}".format(self.game.__str__()))
+            print(LINE)
+            print("{:^80}".format(self.game.get_number()))
+            print("{:^80}".format("Is this a prime?"))
+            print(LINE)
+            print()
+
+            correct = True
+
+            answer = get_str("yes/no:")
+            if not answer:
+                playing = False
+            else:
+                if answer in ('yes', 'y'):
+                    correct = self.game.play_turn(True)
+
+                elif answer in ('no', 'n'):
+                    correct = self.game.play_turn(False)
+
+                elif answer in ('quit', 'q', 'stop'):
+                    playing = False
+
+            if not correct:
+                if self.game.get_score() <= 0:
+                    print("{:^80}".format("Game over!"))
+                    playing = False
+
+        if self.game.manager.check_highscore(self.game.get_score()):
+            print("{:^80}".format("New highscore!"))
+
+            name = get_str("Please insert your name:")
+
+            if not name:
+                name = "-"
+            self.game.manager.add_highscore(self.game.get_score(), name)
+
+    def do_settings(self, args):
+        """
+        Show and edit the application settings
+        """
         raise NotImplementedError
 
-    def show_settings(self):
-        """
-        Show all current settings
-        """
-
-        raise NotImplementedError
-
-    def show_highscores(self):
+    def do_highscores(self, args):
         """
         Prints the highscores to the screen
         """
 
-        highscores = self.manager.get_highscores()
+        highscores = self.game.manager.get_highscores()
 
         ##find the "longest" number.
         nullpadding = len(str(max(highscores.keys())))
@@ -39,8 +90,13 @@ class PrimeGameCli(PrimeGame):
             ##print as zeropadded score:name (00500: Scanlan)
             print("{0:0{1}d} : {2}".format(key, nullpadding, value))
 
+    def do_high(self, args):
+        """
+        Prints the highscores to the screen
+        """
+        self.do_highscores(args)
 
-    def quit(self):
+    def do_quit(self, args=0):
         """
         Quit the application
         """
@@ -53,42 +109,21 @@ class PrimeGameCli(PrimeGame):
         except FileExistsError:
             pass
         finally:
-            exit()
+            return True
 
-    def menu(self):
+    def do_q(self, args):
         """
-        Show the main menu, alliwing the user to navigate between the various modes
+        Quit the application
         """
+        return self.do_quit(args)
 
-        running = True
-        while running:
-            if utils.PY3: ##if running python3:
-                prompt = str(input("menu>")).lower()
-            else:
-                prompt = str(raw_input("menu>")).lower()
-
-            if not prompt or prompt not in COMMANDS.values():
-                self.quit()
-            else:
-                if prompt == COMMANDS['highscores'] \
-                or prompt == COMMANDS['highscores-alias']:
-                    self.show_highscores()
-                elif prompt == COMMANDS['play'] \
-                or prompt == COMMANDS['play-alias']:
-                    self.play()
-                elif prompt == COMMANDS['settings'] \
-                or prompt == COMMANDS['settings-alias']:
-                    self.setting()
-                elif prompt == COMMANDS['quit'] \
-                or prompt == COMMANDS['quit-alias']:
-                    self.quit()
-                elif prompt == COMMANDS['help'] \
-                or prompt == COMMANDS['help-alias']:
-                    self.game_help()
-                else:
-                    self.game_help()
+    def do_EOF(self, args):
+        """
+        Quit the application
+        """
+        return self.do_quit(self, args)
 
 
 if __name__ == "__main__":
-    game = PrimeGameCli(DEFAULT_CONFIGPATH)
-    game.menu()
+    main_cmd = PrimeGameCmd(DEFAULT_CONFIGPATH)
+    main_cmd.cmdloop()
