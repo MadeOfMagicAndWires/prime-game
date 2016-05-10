@@ -7,7 +7,7 @@ from math import pow
 
 ##overwrite default configuration path
 ##Add some default settings
-DEFAULT_CONFIGPATH="data/pimegame.cfg"
+DEFAULT_CONFIG_PATH="data/primegame.cfg"
 DEFAULT_CONFIG["prime-numbers"] = {
     "min-range" : "1",
     "max-range" : "0",
@@ -22,12 +22,12 @@ class PrimeGame(object):
     """
 
 
-    def __init__(self, configpath=""):
+    def __init__(self, config_path=""):
         """
         Initialiser for the class
         """
         ##create gamemanager instance to interact with
-        self.manager = GameManager(configpath)
+        self.manager = GameManager(config_path)
 
         ##game business
         self.turn = 0 ##Amount of played turns.
@@ -83,7 +83,7 @@ class PrimeGame(object):
         """
         answer = True
 
-        if n <= 2:
+        if n < 2:
             answer = False
         if (n % 2) == 0:
             answer = False
@@ -198,38 +198,12 @@ class PrimeGame(object):
         self.next_turn()
         return correct
 
-    def play(self):
-        raise NotImplementedError
-
-    def quit(self):
-        raise NotImplementedError
-
-    def settings(self):
-        raise NotImplementedError
-
-    def show_settings(self):
-        raise NotImplementedError
-
-    def show_highscores(self):
-        raise NotImplementedError
-
-    def menu(self):
-        raise NotImplementedError
-
-    def game_help(self):
-        """
-        Show game help
-        """
-        print(u'¯\_(ツ)_/¯')
-        raise NotImplementedError()
-
-    def __str__(self):
+    def __repr__(self):
         """
         Return the current status
         """
         return "Turn: {0} | Level: {1} | Score: {2}".format(self.get_turns(),
             self.get_level(), self.get_score())
-
 
 def notprime(n):
     """If integer isn't a prime, what is it then?"""
@@ -323,7 +297,7 @@ def play():
 
 if __name__ == "__main__":
     import sys
-    game = PrimeGame(DEFAULT_CONFIGPATH)
+    game = PrimeGame(DEFAULT_CONFIG_PATH)
 
     if PY3:
         for x in range(0,10):

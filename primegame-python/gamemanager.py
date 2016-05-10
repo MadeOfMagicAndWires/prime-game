@@ -1,12 +1,11 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 
 import os
 import csv
-import utils
+from utils import *
 
-if utils.PY3: ##if running python3:
+if PY3: ##if running python3:
     import configparser as Config
 else:
     import ConfigParser as Config
@@ -26,7 +25,7 @@ COMMANDS={
 
 
 DEFAULT_HIGHSCOREPATH="data/highscores.csv"
-DEFAULT_CONFIGPATH="data/gamemanager.cfg"
+DEFAULT_CONFIG_PATH="data/gamemanager.cfg"
 
 DEFAULT_CONFIG={'general': {},
                 'highscores':
@@ -55,24 +54,24 @@ class GameManager(object):
     keeping track of highscores, and a basic menu.
     """
 
-    def __init__(self, configpath=""):
+    def __init__(self, config_path=""):
         """
         Initialisation of the class instance.
         """
 
-        self.configpath = configpath         ##Configuration file
+        self.config_path = config_path         ##Configuration file
         self.config     = self.load_config() ##Confuration settings
-        self.highscorespath = self.get_setting("highscore-file",
+        self.highscore_path = self.get_setting("highscore-file",
                 section="highscores")        ##Highscore file
         self.max_highscores = int(self.get_setting('max-highscores',
             section="highscores"))##Maximum ammount of highscores
         self.highscores = self.load_highscores() ##Highscores dict
 
-    def get_configpath(self):
+    def get_config_path(self):
         """
         Returns the path to the configuration file
         """
-        return self.configpath
+        return self.config_path
 
 
     def load_config(self):
@@ -82,22 +81,32 @@ class GameManager(object):
         config = Config.ConfigParser()
 
         try:
-            config.read(self.get_configpath())
-        except IOError:
+            if not os.path.exists(os.path.dirname(self.get_config_path())):
+                os.makedirs(os.path.dirname(self.get_config_path()))
+            config.read(self.get_config_path())
+        except (FileNotFoundError, IOError) as e:
             print(e)
 
         if not config.sections():
-            utils.eprint("Configuration was not found, moving to defaults")
-
-            if utils.PY3: ##runing python3
-                config.read_dict(DEFAULT_CONFIG)
-            else: ##python2 doesn't have read_dict()
-                for section,options in DEFAULT_CONFIG.iteritems():
-                    config.add_section(section)
-                    for option,value in options.iteritems():
-                        config.set(section, option, value)
+            eprint("Configuration was not found, moving to defaults")
+            config = self.default_settings(config)
 
         return config
+
+
+    def default_settings(self, config):
+        if PY3: ##runing python3
+            config.read_dict(DEFAULT_CONFIG)
+        else: ##python2 doesn't have read_dict()
+            for section,options in DEFAULT_CONFIG.iteritems():
+                config.add_section(section)
+            for option,value in options.iteritems():
+                config.set(section, option, value)
+
+        return config
+
+    def get_config(self):
+        return self.config
 
     def get_setting(self,setting, section="general"):
         """
@@ -118,29 +127,27 @@ class GameManager(object):
             self.config.add_section(section)
             self.config.set(section, setting, str(value))
 
-        self.write_config()
+        self.write_config(self.get_config_path())
 
-    def write_config(self):
+    def write_config(self, file_path=""):
         """
         Writes the configuration to the same configuration file it read from
         """
-        print("Saving configuration")
         try:
-            with open(self.get_configpath(), 'w') as configfile:
-
+            print("Saving new configuration...")
+            with open(file_path, 'w') as configfile:
                 self.config.write(configfile)
                 print("Success!")
-
         except IOError as e:
-            utils.eprint("Could not save configuration to file {}."
-                    .format(self.get_configpath()))
-            utils.eprint(e)
+            eprint("Could not save configuration to file {}."
+                    .format(file_path))
+            eprint(e)
 
-    def get_highscorepath(self):
+    def get_highscore_path(self):
         """
         Returns the path to the file containing highscores.
         """
-        return self.highscorepath
+        return self.highscore_path
 
     def get_highscores(self):
         """
@@ -159,26 +166,25 @@ class GameManager(object):
         highscores = dict()
 
         try:
-            with open(self.highscorespath, 'a+') as ftest:
-                pass
-        except IOError as e:
+            if not os.path.exists(os.path.dirname(self.get_highscore_path())):
+                os.makedirs(os.path.dirname(self.get_highscore_path()))
+            with open(self.highscore_path, 'r') as f:
+                csvalues = csv.reader(f)
+
+                try:
+                    if PY3: ##if running python 3
+                        csvalues.__next__()
+                    else:
+                        csvalues.next()
+                except StopIteration:
+                    highscores = DEFAULT_HIGHSCORES
+
+                for row in csvalues:
+                    highscores[int(row[0])] = row[1]
+
+        except (FileNotFoundError, IOError) as e:
             print(e)
             highscores = DEFAULT_HIGHSCORES
-
-        with open(self.highscorespath, 'a+') as f:
-            csvalues = csv.reader(f)
-
-            try:
-                if utils.PY3: ##if running python 3
-                    csvalues.__next__()
-                else:
-                    csvalues.next()
-            except StopIteration:
-                highscores = DEFAULT_HIGHSCORES
-
-            highscores = dict()
-            for row in csvalues:
-                highscores[int(row[0])] = row[1]
 
         if not highscores:
             highscores = DEFAULT_HIGHSCORES
@@ -204,16 +210,16 @@ class GameManager(object):
             del self.highscores[minimum_highscore]
 
         self.highscores[new_highscore] = name
-        self.write_highscores()
+        self.write_highscores(self.get_highscore_path())
 
-    def write_highscores(self):
+    def write_highscores(self, file_path=""):
         """
         Write new highscores to the file specified in the configuration file
         """
 
-        print("Saving highscores...".format('right aligned'))
+        print("Saving new highscores...")
         try:
-            with open(self.highscorespath, 'w') as highscoresf:
+            with open(file_path, 'w') as highscoresf:
 
                 fieldnames = ('score', 'name')
                 writer = csv.DictWriter(highscoresf, fieldnames)
@@ -228,7 +234,7 @@ class GameManager(object):
                         fieldnames[1]: value})
                 print("Success!")
 
-        except IOError as e:
+        except (IOError) as e:
             eprint("Could not save highscores to file: {}".format(
-                self.get_highscorespath()))
+                file_path))
             print(e)
