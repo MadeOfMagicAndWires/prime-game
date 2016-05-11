@@ -64,7 +64,6 @@ class PrimeGameCmd(cmd.Cmd):
                     print(print_tab("[{}]".format(section)))
                     for option in settings.options(section):
                         value = settings.get(section, option)
-                        print(print_tab("[{}]".format(section)))
                         print("{:>10}{o} = {v}".format("",o = option, v = value))
         else:
             for arg in option:
@@ -162,7 +161,12 @@ class PrimeGameCmd(cmd.Cmd):
 
     def do_settings(self, args):
         """
-        Show and edit the application settings
+        Show or edit the application configuration
+
+        no args: prints the configuration
+        defaults: prints the default configuration values
+        get 'option': only prints the single option 'option' and it's value, if assigned
+        set 'option' 'value': configures the option 'option' with value 'value'
         """
         if not args:
             self._print_settings()
@@ -175,16 +179,33 @@ class PrimeGameCmd(cmd.Cmd):
                 else:
                     self._print_defaults()
 
-            elif 'set' in argslist[0]:
-                print(len(argslist))
+            elif 'get' in argslist[0]:
+                self._print_settings(argslist[1:])
+
+            elif 'set' in argslist[0][:3]:
                 if len(argslist) == 3:
                     self._set_setting(argslist[1], argslist[2])
                 else:
                     print("wrong number of arguments.")
                     print("Type 'help settings' for information")
 
-            elif 'get' in argslist[0]:
-                self._print_settings(argslist[1:])
+            elif 'reset' in argslist[0]:
+                self._print_centered("This will reset the entire configuration")
+                self._print_centered("to the default settings and values")
+                self._print_centered("Are you sure?")
+
+                answer = get_str("yes/no:")
+                
+                if answer in ('yes', 'y', 'ye'):
+                    for section in self.game.manager.config.sections():
+                        self.game.manager.config.remove_section(section)
+
+                    self.game.manager.config = self.game.manager.default_settings(self.game.manager.config)
+                    self.game.manager.write_config(self.game.manager.get_config_path())
+                else:
+                    pass
+            else:
+                pass
 
     def do_play(self, args):
         """
