@@ -46,50 +46,119 @@ class PrimeGameCmd(cmd.Cmd):
             ##print as zeropadded score:name (00500: Scanlan)
             print("{0:0{1}d} : {2}".format(key, nullpadding, value))
 
-    def _print_settings(self, option=""):
+    def _print_settings(self, option=[]):
         """
         Prints the settings to the screen
         """
         settings = self.game.manager.get_config()
+        print_tab = lambda x: "{0:>8}{1}".format("", x)
+
 
         if not option:
             print("Current settings:")
+            print()
             for section in settings.sections():
                 if not settings.options(section):
                     pass
                 else:
-                    print("{0:>8}[{s}]".format("", s = section))
+                    print(print_tab("[{}]".format(section)))
                     for option in settings.options(section):
                         value = settings.get(section, option)
+                        print(print_tab("[{}]".format(section)))
                         print("{:>10}{o} = {v}".format("",o = option, v = value))
         else:
-            for section in settings.sections():
-                if settings.has_option(section, option):
-                    print("{0:>}{o} = {v}".format("", o = option, v = settings.get(section, option)))
+            for arg in option:
+                has_setting = False
+                for section in settings.sections():
+                    if settings.has_option(section, arg):
+                        print(print_tab("[{}]".format(section)))
+                        print("{0:>10}{o} = {v}".format("", o = arg, v = settings.get(section, arg)))
+                        has_setting = True
+                    else:
+                        pass
+                if not has_setting:
+                    print(print_tab("{0:>2}{1} = Undefined".format("", arg)))
 
 
-    def _print_defaults(self, option=""):
-        print("DEFAULT settings:")
+    def _print_defaults(self, option=[]):
+        print_tab = lambda x: "{0:>8}{1}".format("", x)
+
+        if not option:
+            print("DEFAULT settings:")
+            print()
+
+            if PY3:
+                for section, options in DEFAULT_CONFIG.items():
+                    if not options:
+                        pass
+                    else:
+                        print(print_tab("[{}]".format(section)))
+                        for option,value in options.items():
+                            print("{0:>10}{o} = {v}".format("", o = option, v = value))
+
+            else:
+                for section, options in DEFAULT_CONFIG.iteritems():
+                    if not options:
+                        pass
+                    else:
+                        print(print_tab("[{}]".format(section)))
+                        for option,value in options.iteritems():
+                            print("{0:>10}{o} = {v}".format("", o = option, v = value))
+        else:
+            for arg in option:
+                has_setting = False
+                if PY3:
+                    for section,options in DEFAULT_CONFIG.items():
+                        if arg in options:
+                            value = options[arg]
+                            print(print_tab("[{}]".format(section)))
+                            print("{0:>10}{o} = {v}".format("", o = arg, v = value))
+                            has_setting = True
+                        else:
+                            pass
+                else:
+                    for section,options in DEFAULT_CONFIG.iteritems():
+                        if arg in options:
+                            value = options[arg]
+                            print(print_tab("[{}]".format(section)))
+                            print("{0:>10}{o} = {v}".format("", o = arg, v = value))
+                            has_setting = True
+                        else:
+                            pass
+ 
+                if not has_setting:
+                    print(print_tab("{0:>2}{1} = Undefined".format("", arg)))
+
+
+    def _set_setting(self, option="", value=""):
+        """
+        Change a setting and save the new configuration
+        """
+        
+        settings = self.game.manager.get_config()
+        written_setting = False
 
         if PY3:
-            for section, options in DEFAULT_CONFIG.items():
-                if not options:
-                    pass
+            for section,options in DEFAULT_CONFIG.items():
+                if option in options:
+                    self.game.manager.set_setting(option, value, section)
+                    written_setting = True
                 else:
-                    print("{0:>8}[{s}]".format("", s = section))
-                    for option,value in options.items():
-                        print("{0:>10}{o} = {v}".format("", o = option, v = value))
+                    pass
+            if not written_setting:
+                self.game.manager.set_setting(option, value)
 
         else:
-            for section, options in DEFAULT_CONFIG.iteritems():
-                if not options:
-                    pass
+            for section,options in DEFAULT_CONFIG.iteritems():
+                if option in options:
+                    self.game.manager.set_setting(option, value, section)
+                    written_setting = True
                 else:
-                    print("{0:>8}[{s}]".format("", s = section))
-                    for option,value in options.iteritems():
-                        print("{0:>10}{o} = {v}".format("", o = option, v = value))
+                    pass
+            if not written_setting:
+                self.game.manager.set_setting(option, value)
 
-
+        self._print_settings([option])
 
     def do_settings(self, args):
         """
@@ -100,12 +169,22 @@ class PrimeGameCmd(cmd.Cmd):
 
         else:
             argslist = args.split(" ")
-            print(argslist)
             if 'default' in argslist[0][:7]:
-                self._print_defaults()
-            elif 'set' in argslist[0]:
-                print("set")
+                if argslist[1:]:
+                    self._print_defaults(argslist[1:])
+                else:
+                    self._print_defaults()
 
+            elif 'set' in argslist[0]:
+                print(len(argslist))
+                if len(argslist) == 3:
+                    self._set_setting(argslist[1], argslist[2])
+                else:
+                    print("wrong number of arguments.")
+                    print("Type 'help settings' for information")
+
+            elif 'get' in argslist[0]:
+                self._print_settings(argslist[1:])
 
     def do_play(self, args):
         """
