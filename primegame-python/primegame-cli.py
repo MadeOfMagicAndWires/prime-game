@@ -317,6 +317,9 @@ class PrimeGameCmd(cmd.Cmd):
 if __name__ == "__main__":
     
     def cmd_help(errmsg=""):
+        """
+        Prints general usage help, preceded by a possible error message.
+        """
         if errmsg:
             eprint(errmsg)
         
@@ -325,19 +328,27 @@ if __name__ == "__main__":
         print("--conf -conf 'filename': start primegame with")
         print("{0:>25}{1}".format("", "alternative configuration file 'filename'"))
    
+    ##initiate main_cmd to begin, might still change
+    main_cmd = PrimeGameCmd(DEFAULT_CONFIG_PATH)
+    
     #Check for command line arguments
     if len(sys.argv) > 1:
-        if sys.argv[1][:1] == "-": ##only allow - and --flags
-            if sys.argv[1] in ('-conf', '--conf'): ##only one cmd arg implemented so far.
-                main_cmd = PrimeGameCmd(sys.argv[2])
-            else:
-                cmd_help("Unknown Argument")
-                exit(1)
-        else:
-            cmd_help("Unknown Argument")
-            exit(1)
+        
+        argv_iter = iter(sys.argv[1:])
 
-    else: ##No command line arguments, start with default configuration
-        main_cmd = PrimeGameCmd(DEFAULT_CONFIG_PATH)
-    
+        for arg in argv_iter:
+            if arg[:1] == "-": ##only allow - and --flags
+                if arg in ('-conf', '--conf'): 
+                    ## -conf or --conf flag to set alternative config file
+                    ## change main_cmd to use alternative config file
+                    main_cmd = PrimeGameCmd(next(argv_iter))
+                else:
+                    ##flag does not exist, print error
+                    eprint("Unknown Argument '{}'".format(arg))
+                    
+            else:
+                ##Not a - or --flag, print error and help
+                cmd_help("Illegal Argument '{}'".format(arg))
+                exit(1)
+        
     main_cmd.cmdloop()
