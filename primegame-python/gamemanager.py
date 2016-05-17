@@ -238,3 +238,23 @@ class GameManager(object):
             eprint("Could not save highscores to file: {}".format(
                 file_path))
             print(e)
+
+    def save_data(self, config_path="", highscore_path=""):
+        """
+        Checks if the configuration- and highscore files already exist or need to be saved
+        """
+
+        ##Write files if they don't already exist
+        try:
+            open(config_path,'x')
+            self.write_config(config_path)
+            open(highscore_path, 'x')
+            self.write_highscores(highscore_path)
+        except FileExistsError:
+            ##If the file already exists check if the is not empty
+            if os.stat(config_path).st_size == 0:
+                self.write_config(config_path)
+            if os.stat(highscore_path).st_size == 0:
+                self.write_highscores(_highscore_path)
+
+

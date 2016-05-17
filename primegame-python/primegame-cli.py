@@ -79,7 +79,7 @@ class PrimeGameCmd(cmd.Cmd):
                     print(print_tab("{0:>2}{1} = Undefined".format("", arg)))
 
 
-    def _print_defaults(self, option=[]):
+    def _print_default_settings(self, option=[]):
         print_tab = lambda x: "{0:>8}{1}".format("", x)
 
         if not option:
@@ -124,7 +124,7 @@ class PrimeGameCmd(cmd.Cmd):
                             has_setting = True
                         else:
                             pass
- 
+
                 if not has_setting:
                     print(print_tab("{0:>2}{1} = Undefined".format("", arg)))
 
@@ -133,7 +133,7 @@ class PrimeGameCmd(cmd.Cmd):
         """
         Change a setting and save the new configuration
         """
-        
+
         settings = self.game.manager.get_config()
         written_setting = False
 
@@ -175,9 +175,9 @@ class PrimeGameCmd(cmd.Cmd):
             argslist = args.split(" ")
             if 'default' in argslist[0][:7]:
                 if argslist[1:]:
-                    self._print_defaults(argslist[1:])
+                    self._print_default_settings(argslist[1:])
                 else:
-                    self._print_defaults()
+                    self._print_default_settings()
 
             elif 'get' in argslist[0]:
                 self._print_settings(argslist[1:])
@@ -195,7 +195,7 @@ class PrimeGameCmd(cmd.Cmd):
                 self._print_centered("Are you sure?")
 
                 answer = get_str("yes/no:")
-                
+
                 if answer in ('yes', 'y', 'ye'):
                     for section in self.game.manager.config.sections():
                         self.game.manager.config.remove_section(section)
@@ -204,12 +204,23 @@ class PrimeGameCmd(cmd.Cmd):
                     self.game.manager.write_config(self.game.manager.get_config_path())
                 else:
                     pass
+
+            elif 'save' in argslist[0]:
+                self.game.manager.write_config(self.game.manager.get_config_path())
             else:
                 pass
 
     def do_play(self, args):
         """
-        Play the game
+        Type 'play' to start the game:
+
+        Whilst playing the user has to guess
+        whether the current number is a prime or not
+        until the player loses (score is reduced to zero) or ends on a high.
+
+        yes/y: true (the current number is a prime)
+        no/n:  false (the current number **isn't** a prime)
+        quit/q/stop: quit the game
         """
 
         self.game.reset_score()
@@ -286,16 +297,9 @@ class PrimeGameCmd(cmd.Cmd):
         """
         Quit the application
         """
-        ##Write files if they don't already exist
-        try:
-            open(self.game.manager.get_config_path(),'x')
-            self.game.manager.write_config(self.game.manager.get_config_path())
-            open(self.game.manager.get_highscore_path(), 'x')
-            self.game.manager.write_highscores(self.game.manager.get_highscore_path())
-        except FileExistsError:
-            pass
-        finally:
-            return True
+        self.game.manager.save_data(self.game.manager.get_config_path(), self.game.manager.get_highscore_path())
+        return True
+
 
     def do_q(self, args):
         """
