@@ -24,13 +24,13 @@ COMMANDS={
         }
 
 
-DEFAULT_HIGHSCOREPATH="data/highscores.csv"
 DEFAULT_CONFIG_PATH="data/gamemanager.cfg"
+DEFAULT_HIGHSCORE_PATH="data/highscores.csv"
 
 DEFAULT_CONFIG={'general': {},
                 'highscores':
                     {
-                        'highscore-file' : DEFAULT_HIGHSCOREPATH,
+                        'highscore-file' : DEFAULT_HIGHSCORE_PATH,
                         'max-highscores': "10"
                     }
                 }

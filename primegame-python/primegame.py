@@ -6,14 +6,17 @@ from gamemanager import *
 from math import pow
 
 ##overwrite default configuration path
+HOME = os.path.expanduser("~")
+DEFAULT_CONFIG_PATH = HOME + "/.primegame/primegame.cfg"
+DEFAULT_HIGHSCORE_PATH = HOME +  "/.primegame/highscores.csv"
+
 ##Add some default settings
-DEFAULT_CONFIG_PATH="data/primegame.cfg"
 DEFAULT_CONFIG["prime-numbers"] = {
     "min-range" : "1",
     "max-range" : "0",
     "min-score" : "10"
     }
-
+DEFAULT_CONFIG["highscores"]["highscore-file"] = DEFAULT_HIGHSCORE_PATH
 
 class PrimeGame(object):
     """
