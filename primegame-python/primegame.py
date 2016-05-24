@@ -1,16 +1,37 @@
 # -*- coding: utf-8 -*-
 
+"""
+Primegame module, contains everything needed for the tracking and usage
+of the primegame game and it's rules
+
+PrimeGame() = main primegame class, containing all the functions
+
+HOME = the home directory of the current user
+
+DEFAULT_CONFIG_PATH = the default path for the configuration file,
+                      amended for use for the primegame game
+
+DEFAULT_HIGHSCORE_PATH = the default path for the highscores file,
+                      amended for the use of the primegame game
+
+DEFAULT_CONFIG = the default configuration settings and values,
+                 amended for the use for the primegame game
+
+"""
+
+
+
 import random
 from utils import *
 from gamemanager import *
 from math import pow
 
-##overwrite default configuration path
-HOME = os.path.expanduser("~")
+# overwrite default configuration path
+HOME = os.path.expanduser("~") # home directory
 DEFAULT_CONFIG_PATH = HOME + "/.primegame/primegame.cfg"
 DEFAULT_HIGHSCORE_PATH = HOME +  "/.primegame/highscores.csv"
 
-##Add some default settings
+# Add some new default settings
 DEFAULT_CONFIG["prime-numbers"] = {
     "min-range" : "1",
     "max-range" : "0",
@@ -21,25 +42,29 @@ DEFAULT_CONFIG["highscores"]["highscore-file"] = DEFAULT_HIGHSCORE_PATH
 class PrimeGame(object):
     """
     Handles all functions and rules needed to play the game,
-    but not interaction
+    but not user interaction
+
     """
 
 
     def __init__(self, config_path=""):
         """
         Initialiser for the class
+
+        arguments:
+            config_path = path to file to load configuration from
         """
-        ##create gamemanager instance to interact with
+        # create gamemanager instance to interact with
         self.manager = GameManager(config_path)
 
-        ##game business
-        self.turn = 0 ##Amount of played turns.
-        self.correct_count = 0
+        # game business
+        self.turn = 0 # Amount of played turns.
+        self.correct_count = 0 # Amount of correct guesses
         self.level = 1
         self.score = int(self.manager.get_setting("min-score",
             "prime-numbers")) #Minimum score
 
-        ##prime number business
+        # prime number business
         self.min_range = int(self.manager.get_setting("min-range",
                 "prime-numbers")) #minimum range for random numbers
         self.max_range = int(self.manager.get_setting("max-range",
@@ -50,6 +75,7 @@ class PrimeGame(object):
         """
         Returns the minimum range for random numbers,
         defined in the cofiguration settings
+
         """
         return self.min_range
 
@@ -57,6 +83,7 @@ class PrimeGame(object):
         """
         Returns the maximum range for random numbers,
         defined in the configuration settings
+
         """
         return self.max_range
 
@@ -67,6 +94,7 @@ class PrimeGame(object):
 
         If the maximum range is defined as 0
         it'll increase with the rate of 10^level
+
         """
         max_range = self.get_max_range()
         if max_range == 0:
@@ -77,20 +105,25 @@ class PrimeGame(object):
     def get_number(self):
         """
         Returns the current randomly generated number
+
         """
         return self.number
 
     def _is_prime(self,n):
         """
         Returns True if n is a prime, False otherwise
+
         """
         answer = True
 
-        if n < 2:
+        if n < 2: # no primes smaller than 2
             answer = False
-        if (n % 2) == 0:
+        elif n == 2: # 2 %2 IS 0, but 2 is a prime
+            answer = True
+        elif (n % 2) == 0: # even numbers can't be a prime
             answer = False
         else:
+            # catch all numbers devideable by odd numbers
             i=3
             while i*i <= n:
                 if (n % i) == 0:
@@ -101,33 +134,61 @@ class PrimeGame(object):
 
     def guess_prime(self, guess=False):
         """
-        Returns True if the guess was correct, False otherwise
+        checks the guess (as to whether or not
+        the current number is a prime) was correct
+
+        arguments:
+            guess: guess as to whether the current number is a prime
+
+        returns:
+            True:  guess was correct
+            False: guess was incorrect
+
         """
         return guess == self._is_prime(self.get_number())
 
     def get_turns(self):
         """
         Returns the current turn number
+
         """
         return self.turn
 
     def increase_turn(self, amount=1):
         """
         Increases the current turn counter by amount
+
+        arguments:
+            amount = amount to raise turns by
+                     (default: 1)
+
         """
         self.turn += amount
 
     def get_correct_count(self):
         """
         Get the current correct count
+
         """
         return self.correct_count
 
     def increase_correct_count(self, amount=1):
         """
         Increases the correct count by amount
-        """
+
+        arguments:
+            amount = amount to raise turns by
+                     (default: 1)
+
+         """
         self.correct_count += amount
+
+    def reset_correct_count(self):
+        """
+        Resets the current correct counter
+
+        """
+        self.correct_count = 0
 
     def get_level(self):
         """
@@ -138,24 +199,36 @@ class PrimeGame(object):
     def increase_level(self, amount=1):
         """
         Increases the current level by amount
+
+        arguments:
+            amount = amount to raise turns by
+                     (default: 1)
+
         """
         self.level += amount
 
     def get_score(self):
         """
         Get the current score
+
         """
         return self.score
 
     def increase_score(self, amount=1):
         """
         Increases the current score by amount
+
+        arguments:
+            amount = amount to raise turns by
+                     (default: 1)
+
         """
         self.score += amount
 
     def reset_score(self):
         """
         Reset the score to the minimum score defined in the configuration
+
         """
         self.score = int(self.manager.get_setting("min-score",
             "prime-numbers"))
@@ -163,34 +236,45 @@ class PrimeGame(object):
     def next_turn(self):
         """
         Preforms all the functions required to move to the next turn
+
         """
-        ##Generate a new number
+        # Generate a new number
         self.number = self.new_number()
 
-        '''
-        For every 5 turns
-        if 3 or more turns were correct increase the level
-        and reset the correct count
-        '''
+
+        # For every 5 turns
+        # if 3 or more turns were correct increase the level
+        # and reset the correct count
         if (self.get_turns() % 5) == 0:
             if self.get_correct_count() >= 3:
                 self.increase_level()
-                self.increase_correct_count((self.get_correct_count())*-1)
+                self.reset_correct_count()
             else:
+        # otherwise, decrease the level if it's not lower than 1
                 if self.get_level() > 1:
                     self.increase_level(-1)
 
-        ##Increase the turn counter and print the current state
+        # Increase the turn counter
         self.increase_turn()
 
     def play_turn(self, answer=False):
         """
-        Everything needed to play a single turn
-        using the answer provided
+        plays a single turn
+
+        Checks the users answer, and depending on whether that was correct
+        increases or decreases the score;
+        then increases the turn and possibly the level
+
+        arguments:
+            answer = the answer provided by the user
+
+        returns:
+            a boolean on whether the guess was correct or not
+
         """
         correct = self.guess_prime(answer)
-        ##if correct, increase score by the current random number
-        ##and increase the correct count
+        # if correct, increase score by the current random number
+        # and increase the correct count
         if correct:
             self.increase_score(self.get_number())
             self.increase_correct_count()
@@ -203,116 +287,8 @@ class PrimeGame(object):
 
     def __repr__(self):
         """
-        Return the current status
+        Return the current status as a handy string
+
         """
         return "Turn: {0} | Level: {1} | Score: {2}".format(self.get_turns(),
             self.get_level(), self.get_score())
-
-def notprime(n):
-    """If integer isn't a prime, what is it then?"""
-    for x in range(3, int(n**0.5)+1, 2):
-
-        if n % x == 0:
-
-            return str(n) + ' is the product of ' + str(x) + ' * ' + str(n/x)
-
-
-
-def play():
-
-    """Play the game.
-
-    answer 'q' or 'quit' to quit
-    """
-
-    line = "----------------------"
-    correct_count = True
-    rand_max=10
-    number = random.randrange(1,rand_max,2)
-    prime = isprime(number)
-    level = 1
-    score = 0
-    turn = 0
-    limit = 2
-
-    clear.clear()
-    print("\t\t\t\t\tStart!\n\n")
-
-    while correct_count == True:
-
-        print(number, '\n')
-        answer=str(raw_input("Is this a prime y/n? "))
-        if answer not in ('q', 'n', 'y', '0', 'quit', 'no', 'ye', 'yes', 's', 'stop'):
-            print("Please answer in yes or no\n")
-            continue
-        if answer in ('y', 'ye', 'yes'):
-            answer =  True
-        if answer in ('n', 'no'):
-            answer = False
-        if answer in ('s', 'stop', '0'):
-            return score
-            break
-        if answer in ('q', 'quit'):
-            exit()
-
-        if answer == prime:
-            clear.clear()
-            score = score + number
-            print("Correct!\n")
-            print(line+line)
-            print("Your score is: " + str(score))
-            print(line+line, "\n")
-            turn = turn+1
-            if turn >= limit:
-                limit = 5*level
-                level = level+1
-                rand_max = rand_max*10
-                print("Level " + str(level) + "!" + "\n")
-
-
-            correct_count = True
-            number = random.randrange(1,rand_max,2)
-            prime = isprime(number)
-
-        elif answer != prime:
-            correct_count == False
-            score = 0
-            turn = 0
-            level = level/2
-            rand_max=rand_max/2
-            limit = limit/2
-
-            clear.clear()
-            if notprime(number) != None:
-                print("\nIncorrect_count! ", notprime(number))
-
-            else:
-                print("\nIncorrect_count! ")
-
-            print(line+line)
-            print("Your score is: " + str(score))
-            print(line+line, "\n")
-            print("Level " + str(level) + "!" + "\n")
-
-            number = random.randrange(1,rand_max,2)
-            prime = isprime(number)
-
-
-if __name__ == "__main__":
-    import sys
-    game = PrimeGame(DEFAULT_CONFIG_PATH)
-
-    if PY3:
-        for x in range(0,10):
-            print("Current number: {}".format(game.get_number()))
-            print(game.play_turn(False))
-            if game.get_score() <= 0:
-                print("Game over!")
-                break
-    else:
-        for x in xrange(0,10):
-            print(game.get_number())
-            print(game.play_turn(False))
-            if game.get_score() <= 0:
-                print("Game over!")
-                break
